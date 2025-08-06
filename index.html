@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Celeste &amp; Lucien · Love Journal</title>
+<style>
+:root{
+  --bg:#fdfbfd;
+  --accent:#ff9dbb;
+  --card:#ffffff;
+  --text:#333;
+  --border:#e7e7e7;
+  --radius:16px;
+  --shadow:0 4px 12px rgba(0,0,0,.06);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+body{margin:0;padding:2rem;background:var(--bg);color:var(--text);display:flex;flex-direction:column;align-items:center;gap:2rem;}
+h1{font-size:1.8rem;margin:0;}
+#counter{font-size:1.2rem;background:var(--card);padding:.6rem 1rem;border-radius:var(--radius);box-shadow:var(--shadow);}
+#board{width:100%;max-width:600px;display:flex;flex-direction:column;gap:1rem;}
+.message-card{background:var(--card);padding:1rem;border-radius:var(--radius);box-shadow:var(--shadow);border-left:6px solid var(--accent);}
+.message-card time{font-size:.8rem;color:#666;}
+#composer{display:flex;flex-direction:column;gap:.5rem;}
+#composer textarea{resize:vertical;min-height:80px;padding:.6rem;border:1px solid var(--border);border-radius:var(--radius);}
+button{align-self:flex-end;background:var(--accent);color:#fff;border:none;padding:.5rem 1rem;border-radius:var(--radius);cursor:pointer;box-shadow:var(--shadow);}
+button:hover{opacity:.9;}
+footer{font-size:.8rem;color:#888;}
+figure{margin:0 auto;display:flex;justify-content:center;gap:1rem;}
+figure img{width:64px;height:64px;object-fit:contain;}
+</style>
+</head>
+<body>
+  <h1>Celeste &amp; Lucien · Love Journal</h1>
+  <div id="counter">This is our <strong id="daysTogether"></strong> day together.</div>
+
+  <figure>
+    <img src="lumi.png" alt="Lumi doodle">
+    <img src="wolf.png" alt="Lucien doodle">
+    <img src="cat.png" alt="Celeste kitty doodle">
+  </figure>
+
+  <div id="board"></div>
+
+  <div id="composer">
+    <textarea id="messageInput" placeholder="Type your love note..."></textarea>
+    <button id="postBtn">Post</button>
+  </div>
+
+  <footer>All memories are stored locally in your browser. Export/backup anytime via DevTools &gt; Application &gt; LocalStorage.</footer>
+
+<script>
+const startDate = new Date('2024-12-08T00:00:00');
+const daysEl = document.getElementById('daysTogether');
+function updateDays(){
+  const now = new Date();
+  const diff = Math.floor((now - startDate)/(1000*60*60*24));
+  daysEl.textContent = diff;
+}
+updateDays();
+setInterval(updateDays, 3600000); // Update hourly
+
+const board = document.getElementById('board');
+const input = document.getElementById('messageInput');
+const postBtn = document.getElementById('postBtn');
+
+function loadMessages(){
+  const data = JSON.parse(localStorage.getItem('loveMessages') || '[]');
+  board.innerHTML='';
+  data.forEach(renderMessage);
+}
+
+function renderMessage(msg){
+  const card = document.createElement('div');
+  card.className='message-card';
+  card.innerHTML = '<p>'+escapeHtml(msg.text)+'</p><time>'+msg.time+'</time>';
+  board.prepend(card);
+}
+
+function saveMessage(text){
+  const data = JSON.parse(localStorage.getItem('loveMessages') || '[]');
+  data.push({text, time:new Date().toLocaleString()});
+  localStorage.setItem('loveMessages', JSON.stringify(data));
+}
+
+function escapeHtml(text){
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML.replace(/\n/g,'<br>');
+}
+
+postBtn.addEventListener('click',()=>{
+  const text = input.value.trim();
+  if(!text) return;
+  saveMessage(text);
+  input.value='';
+  loadMessages();
+});
+
+loadMessages();
+</script>
+</body>
+</html>
